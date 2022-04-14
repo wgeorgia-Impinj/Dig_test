@@ -119,9 +119,9 @@ set outports [all_outputs]
 
 
 ### 
-source -echo $git_root/digital/syn_spar/constraints/dig.clocks.tcl
-source -echo $git_root/digital/syn_spar/constraints/dig.exceptions.tcl
-source -echo $git_root/digital/syn_spar/constraints/dig.io.tcl
+source -echo dig.clocks.tcl
+source -echo dig.exceptions.tcl
+source -echo dig.io.tcl
 ###
 
 #Clock gating check are disabled
