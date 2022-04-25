@@ -37,10 +37,10 @@ set PIN_TIM_DTI_CLK [filter_collection [get_pins -of [filter_collection [all_fan
 
 set PIN_TIM_WAIT_WRITE "I_tc_tim/i_tim_st_waitorwrite_buf_FORCE_KEEP/Y"
 set PIN_TIM_SM_ST_CLK     "I_tc_tim/i_tim_st_sm_inv_FORCE_KEEP/Y"
-if {$env(design_phase) == "SYNTH"} {
+if {${SPAR_TOOL} == "DC"} {
     set PIN_TIM_RX1_CLK     "I_tc_crc/CRC_PASS_reg/enable"
     set PIN_TIM_RX2_CLK     "I_tc_tim/tim_state_wait_vs_write_reg/enable"
-} elseif {$env(design_phase) == "STA" || $env(design_phase) == "PNR"} {
+} elseif {${SPAR_TOOL} == "STA" || ${SPAR_TOOL} == "PNR"} {
     set PIN_TIM_RX1_CLK    "I_tc_crc/CRC_PASS_reg/GN"
     set PIN_TIM_RX2_CLK    "I_tc_tim/tim_state_wait_vs_write_reg/GN"
 }
@@ -163,10 +163,10 @@ create_generated_clock -name RX_CLKP     -source $PIN_RX_CLOCK  -edges { 1 3 9 }
 #Due to the extensive clock gating, almost all logic in the tag ends up being treated at a clock. 
 #This is an attempt to prevent the clock paths from propagating through the datapaths. 
 #In icc check the output of report_clock_tree to inspect the clocks
-if { $env(design_phase) == "PNR" || $env(design_phase) == "STA"} {
+if { ${SPAR_TOOL} == "PNR" || ${SPAR_TOOL} == "STA"} {
 
     #FIXME: need to run these in PT and confirm all clocks can find their path to their master?
-    if { $env(design_phase) == "PNR" } {
+    if { ${SPAR_TOOL} == "PNR" } {
         set_clock_tree_exceptions -clocks OSC_CLK -stop_pins [list I_tc_tim/I_tim_clk_FORCE_KEEP/Y I_tc_tim/I_tim_clk_b_FORCE_KEEP/Y]
     } else {
        # set_clock_sense -clocks OSC_CLK -stop_propagation [list I_tc_tim/I_tim_clk_FORCE_KEEP/Y I_tc_tim/I_tim_clk_b_FORCE_KEEP/Y]
@@ -267,12 +267,12 @@ create_generated_clock -name Fbit8_clk  -source $Fbit7_ckpin  -divide_by 2 [get_
 create_generated_clock -name Fbit9_clk  -source $Fbit8_ckpin  -divide_by 2 [get_pins $Fbit9_ckpin]
 
 # 4-bit RCTR
-if {$env(design_phase) == "SYNTH"} {
+if {${SPAR_TOOL} == "DC"} {
     set rctr0_ckpin "I_tc_tim/i_tc_rctr_4b_dn/genblk1[0].genblk1.i_bit_FORCE_KEEP/CK"
     set rctr1_ckpin "I_tc_tim/i_tc_rctr_4b_dn/genblk1[1].genblk1.i_bit_FORCE_KEEP/CK"
     set rctr2_ckpin "I_tc_tim/i_tc_rctr_4b_dn/genblk1[2].genblk1.i_bit_FORCE_KEEP/CK"
     set rctr3_ckpin "I_tc_tim/i_tc_rctr_4b_dn/genblk1[3].genblk1.i_bit_FORCE_KEEP/CK"
-} elseif {$env(design_phase) == "STA" || $env(design_phase) == "PNR"} {
+} elseif {${SPAR_TOOL} == "STA" || ${SPAR_TOOL} == "PNR"} {
     set rctr0_ckpin "I_tc_tim/i_tc_rctr_4b_dn/genblk1_0__genblk1_i_bit_FORCE_KEEP/CK"
     set rctr1_ckpin "I_tc_tim/i_tc_rctr_4b_dn/genblk1_1__genblk1_i_bit_FORCE_KEEP/CK"
     set rctr2_ckpin "I_tc_tim/i_tc_rctr_4b_dn/genblk1_2__genblk1_i_bit_FORCE_KEEP/CK"
@@ -347,7 +347,7 @@ create_generated_clock -name HVS_CLK      -source $PORT_OSC_CLK -divide_by 1 $PI
 #create_clock -name CONFIG_CLK        -period $config_period     -waveform $config_waveform [ get_ports CONFIG_CLK ]
 
 #Clock Stop for HVS CLK
-if { $env(design_phase) == "PNR"} {
+if { ${SPAR_TOOL} == "PNR"} {
     #Can't get this to work applying directly to HVS_CLK, so applying globally
     #set_clock_sense -clocks HVS_CLK  -stop_propagation I_tc_nvm/I_cg_hvs_clk_640b/CG_BUF_FORCE_KEEP/Y
 }
@@ -364,13 +364,13 @@ if { $env(design_phase) == "PNR"} {
 
 
 # WRITE (and margin read) State Machine Clock
-if {$env(design_phase) == "SYNTH"} {
+if {${SPAR_TOOL} == "DC"} {
     create_generated_clock -name ctrl_clk_buf \
                            -edges { 1 3 5 } \
                            -source $PIN_HVS_CLK \
                            [ get_pins I_tc_nvm/i_rctr_1b_clk_div/gen_rctr_dn[0].genblk1.i_bit_FORCE_KEEP/Q ]
 
-} elseif {$env(design_phase) == "STA" || $env(design_phase) == "PNR"} {
+} elseif {${SPAR_TOOL} == "STA" || ${SPAR_TOOL} == "PNR"} {
     create_generated_clock -name ctrl_clk_buf \
                            -edges { 1 3 5 } \
                            -source $PIN_HVS_CLK \
@@ -441,11 +441,11 @@ create_generated_clock -name hvs_clk_80b \
 #create_generated_clock -name fb_bit1_clk  -divide_by 2 -source [ get_pins *fb_bit0*/CK ] [ get_pins *fb_bit1*/CK ]
 #create_generated_clock -name bg_bit1_clk  -divide_by 2 -source [get_pins *bg_bit0*/CK]   [ get_pins *bg_bit1*/CK ]
 #create_generated_clock -name bg_bit2_clk  -divide_by 2 -source [get_pins *bg_bit1*/CK]   [ get_pins *bg_bit2*/CK ]
-#if {$env(design_phase) == "SYNTH"} {
+#if {${SPAR_TOOL} == "DC"} {
 #    create_generated_clock -name fb_buf1_clk -divide_by 2 -source [ get_pins *fb_bit1*/CK ] [ get_pins hvs_fb_ok_filt_reg/clocked_on ] 
 #    create_generated_clock -name bg_buf2_clk -divide_by 2 -source [get_pins *bg_inv1*/Y]    [ get_pins hvs_bg_ok_filt_mr_reg/clocked_on ]
 #    create_generated_clock -name hvs_bg_ok_filt_clk -divide_by 2 -source [get_pins *bg_bit1*/CK] [ get_pins hvs_bg_ok_filt_reg/clocked_on ]
-#} elseif {$env(design_phase) == "STA"} {
+#} elseif {${SPAR_TOOL} == "STA"} {
 #    create_generated_clock -name fb_buf1_clk -divide_by 2 -source [ get_pins *fb_bit1*/CK ] [ get_pins hvs_fb_ok_filt_reg/CK ]
 #    create_generated_clock -name bg_buf2_clk -divide_by 2 -source [get_pins *bg_inv1*/Y]    [ get_pins hvs_bg_ok_filt_mr_reg/CK ]
 #    create_generated_clock -name hvs_bg_ok_filt_clk -divide_by 2 -source [get_pins *bg_bit1*/CK]   [ get_pins hvs_bg_ok_filt_reg/CK ]
@@ -492,17 +492,17 @@ set_clock_uncertainty -hold  $hold_uncertainty  [ all_clocks ]
 set_max_transition $clk_slew_limit [get_ports *CLK* -filter "@port_direction == out"]; #IOs
 set_max_transition $data_slew_limit [ all_clocks ] ; #data pins driven by clks
 
-if {$env(design_phase) == "SYNTH"} {
+if {${SPAR_TOOL} == "DC"} {
     set_max_transition $clk_slew_limit -clock_path [ all_clocks ] ;# all of the clocks defined in this file
     #set_max_transition $clk_slew_limit [get_ports -nocase *CLK* -hier ]; #anything with the letters CLK in it which isn't quite what we want
 }
 
-if {$env(design_phase) == "STA"} {
+if {${SPAR_TOOL} == "STA"} {
     set_max_transition $clk_slew_limit [get_pins * -hier -filter "is_clock_pin == true"] ;#every and any pin that acts like a clk
 #    set_max_transition $clk_slew_limit -clock_path [ all_clocks ] ;# all of the clocks defined in this file
 }
 
-if {$env(design_phase) == "PNR"} {
+if {${SPAR_TOOL} == "PNR"} {
     #FYI, this command does't really do anything. Its overridden by set_clock_tree_options -max_tran later in the PNR flow
     set_max_transition $clk_slew_limit -clock_path [get_clocks]
 }

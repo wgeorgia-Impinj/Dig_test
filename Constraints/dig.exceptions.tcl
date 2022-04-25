@@ -1,10 +1,10 @@
 # 6/18/18 Only the following 2 latches now have timing disabled on them.
 # Consider swapping them out for FFs.
 # 2021.03.31 -- Arcs go from D to QN instead of D to Q
-if {$env(design_phase) == "SYNTH"} {
+if {${SPAR_TOOL} == "DC"} {
     set_disable_timing -from data_in -to Q [ get_cells I_tc_tim/tim_state_wait_vs_write_reg]
     set_disable_timing -from data_in -to Q [ get_cells I_tc_tim/osc_dac_int_lat_reg*]
-} elseif {$env(design_phase) == "STA" || $env(design_phase) == "PNR"} {
+} elseif {${SPAR_TOOL} == "STA" || ${SPAR_TOOL} == "PNR"} {
     set_disable_timing -from D -to QN [ get_cells I_tc_tim/tim_state_wait_vs_write_reg]
     set_disable_timing -from D -to QN [ get_cells I_tc_tim/osc_dac_int_lat_reg*]
 }
@@ -295,7 +295,7 @@ set_false_path -hold -from I_tc_tim/I_rx_disable_FORCE_KEEP \
                                I_tc_cd/CD_CMD[*] ]
 
 #This is overly aggressive due to the signal optimizations that ICC does. Only apply to PT analysis               
-if {$env(design_phase) == "STA" } {
+if {${SPAR_TOOL} == "STA" } {
     # Tott need to check with others.
     # Wait or write clock fires at least 2 clock cycles before the first TX_D_CLK
     set_false_path -from [get_clocks wait_or_write_clk] \
@@ -541,7 +541,7 @@ set_false_path  -from TIM_MIF_CLK \
 set_false_path -from [get_clocks TIM_CD_CLK] -through I_tc_cd/CD_DONE \
    -to [list [get_clocks TX_D_CLK] ]
 
-if {$env(design_phase) == "SYNTH"} {
+if {${SPAR_TOOL} == "DC"} {
     set clock_state_next_state "I_tc_tim/clock_state*/next_state"
 } else {
     set clock_state_next_state "I_tc_tim/clock_state*/D"
@@ -586,7 +586,7 @@ set_false_path -through I_tc_cd/Icd_params/length_sr_reg*/Q* \
 
 #NOTE: sm_tx_format_d is only a passthrough during the wait or write state
 #The CD clk will fire 2.5 clks before this and never after
-if {$env(design_phase) == "SYNTH"} {
+if {${SPAR_TOOL} == "DC"} {
     set_false_path -from [list [get_clocks TIM_CD_CLK]] \
         -through I_tc_sm/SM_TX_FORMAT*  
 } else {
@@ -611,7 +611,7 @@ set_false_path -through I_tc_cd/Icd_cmd/CD_CMD*      \
 
 
 # The PER isn't needed until multiple cycles after the RX is enabled. 
-if {$env(design_phase) == "SYNTH" || $env(design_phase) == "PNR" } {
+if {${SPAR_TOOL} == "DC" || ${SPAR_TOOL} == "PNR" } {
     set path_en "I_tc_rx/AT/PATH_EN"
 } else {
     set path_en "I_tc_rx/PATH_EN_AT"
@@ -665,7 +665,7 @@ set_multicycle_path -setup 2 -through I_tc_mif/I_tc_mif_state_machine/MIF_INIT_L
 set_false_path       -hold   -through I_tc_mif/I_tc_mif_state_machine/MIF_INIT_LENGTH \
                              -through I_tc_cd/CD_READ_NVM
 
-if {$env(design_phase) == "SYNTH"} {
+if {${SPAR_TOOL} == "DC"} {
     set_false_path -through I_tc_crc/CRC_PASS_reg/Q \
         -to I_tc_tim/clock_state*/next_state
 
@@ -714,7 +714,7 @@ if {$env(design_phase) == "SYNTH"} {
     set_false_path -through  [list I_tc_cd/CD_MUX_BIT_ADDR_B[*] ] \
                    -to [list I_tc_tx/*_symbol_q_reg/data_in ]   
 
-} elseif {$env(design_phase) == "STA" || $env(design_phase) == "PNR"} {
+} elseif {${SPAR_TOOL} == "STA" || ${SPAR_TOOL} == "PNR"} {
  
     set_false_path -through I_tc_crc/CRC_PASS_reg/Q \
         -to I_tc_tim/clock_state*/D
@@ -779,10 +779,10 @@ if {$env(design_phase) == "SYNTH"} {
 
     set_multicycle_path 2 -hold -rise -from I_tc_tim/I_rx_disable_FORCE_KEEP/CK -to I_tc_rx/AT/EDGE_v/SLICER_DATA_nd_FORCE_KEEP_0/D
 } else {
-    echo "Error: $env(design_phase) not defined"
+    echo "Error: ${SPAR_TOOL} not defined"
 }
 
-if { $env(design_phase) == "STA" } {
+if { ${SPAR_TOOL} == "STA" } {
 
 
     ########################### BEGIN PT only exception #########################
@@ -806,7 +806,7 @@ if { $env(design_phase) == "STA" } {
 # The clock doesn't toggle to the subsequent flop in the ripple chain 
 # till the reset on the current flop has been released.
 
-# if {$env(design_phase) == "SYNTH"} {
+# if {${SPAR_TOOL} == "DC"} {
     # Free Counter bits 3 through 9
     set_false_path -through I_tc_tim/i_tc_tim_timers/i_bit3_free_FORCE_KEEP/RN
     set_false_path -through I_tc_tim/i_tc_tim_timers/i_bit4_free_FORCE_KEEP/RN
@@ -853,12 +853,12 @@ if { $env(design_phase) == "STA" } {
     # TIM 4-bit down counter CLR_B (SN pin of FF) is stable 1/2 cycle before
     # and after posedge of clock
    
-if {$env(design_phase) == "SYNTH"} {
+if {${SPAR_TOOL} == "DC"} {
     set_false_path -through I_tc_tim/i_tc_rctr_4b_dn/genblk1[0].genblk1.i_bit_FORCE_KEEP/SN
     set_false_path -through I_tc_tim/i_tc_rctr_4b_dn/genblk1[1].genblk1.i_bit_FORCE_KEEP/SN
     set_false_path -through I_tc_tim/i_tc_rctr_4b_dn/genblk1[2].genblk1.i_bit_FORCE_KEEP/SN
     set_false_path -through I_tc_tim/i_tc_rctr_4b_dn/genblk1[3].genblk1.i_bit_FORCE_KEEP/SN
-} elseif {$env(design_phase) == "STA" || $env(design_phase) == "PNR"} {
+} elseif {${SPAR_TOOL} == "STA" || ${SPAR_TOOL} == "PNR"} {
     set_false_path -through I_tc_tim/i_tc_rctr_4b_dn/genblk1_0__genblk1_i_bit_FORCE_KEEP/SN
     set_false_path -through I_tc_tim/i_tc_rctr_4b_dn/genblk1_1__genblk1_i_bit_FORCE_KEEP/SN
     set_false_path -through I_tc_tim/i_tc_rctr_4b_dn/genblk1_2__genblk1_i_bit_FORCE_KEEP/SN
@@ -943,7 +943,7 @@ set_disable_timing -from A -to Y [get_cells I_tc_nvm/I_cg_hvs_clk_*/CG_AND_FORCE
 
 
 # By design hvs_clk_80b and hvs_clk_320b are disabled during mr_state=1
-# if {$env(design_phase) == "STA" || $env(design_phase) == "PNR"} {
+# if {${SPAR_TOOL} == "STA" || ${SPAR_TOOL} == "PNR"} {
 #    set_false_path -from I_tc_nvm/I_mu1nvm_control_fsm/state_q_reg_8_/CK -to [get_clocks hvs_clk_80b]
 #    set_false_path -from I_tc_nvm/I_mu1nvm_control_fsm/state_q_reg_8_/CK -to [get_clocks hvs_clk_320b]
 #}

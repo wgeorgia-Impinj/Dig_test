@@ -1,18 +1,17 @@
 ### Margins
 
-    if {$env(design_phase) == "SYNTH"} {
+    if {${SPAR_TOOL} == "DC"} {
         set  scaling_factor                0.90     ;  # Over-constrain clocks during synthesis
-    } elseif { $env(design_phase) == "PNR"} {
+    } elseif { ${SPAR_TOOL} == "PNR"} {
         set  scaling_factor                0.90     ;  # Under constrain to help with DRCs or over-constrain to help with timing. Your call. 
-    } elseif {$env(design_phase) == "STA" } {
+    } elseif {${SPAR_TOOL} == "STA" } {
         set  scaling_factor                1.0     ;  # Full clock period during STA
     } else {
-        echo "$env(design_phase) not defined"
+        echo "${SPAR_TOOL} not defined"
         set  scaling_factor                1.0     ;  # Full clock period if undefined
     }
 
-source -verbose  -echo $git_root/digital/syn_spar/constraints/common.constraints.tcl
-source -verbose  -echo $git_root/digital/syn_spar/scripts/impinj_utils.tcl
+source -verbose  -echo common.constraints.tcl
 
 ###TIM CLOCKS####
 # Discussion with Theron and Charles 01/29/2018
@@ -99,14 +98,14 @@ set outports [all_outputs]
 #set nvm_osc_samp_input_delay_margin 0.65
 #
 #
-#if {$env(design_phase) == "SYNTH"} {
+#if {${SPAR_TOOL} == "DC"} {
 #    set  nvm_scaling_factor                0.85     ;  # Over-constrain clocks during synthesis
-#} elseif {$env(design_phase) == "PNR"} {
+#} elseif {${SPAR_TOOL} == "PNR"} {
 #    set  nvm_scaling_factor                0.9     ;  # Full clock period during STA
-#} elseif {$env(design_phase) == "STA"} {
+#} elseif {${SPAR_TOOL} == "STA"} {
 #    set  nvm_scaling_factor                1.0     ;  # Full clock period during STA
 #} else {
-#    echo "$env(design_phase) not defined"
+#    echo "${SPAR_TOOL} not defined"
 #    set  nvm_scaling_factor                1.0     ;  # Full clock period if undefined
 #}
 #
@@ -130,7 +129,7 @@ remove_clock_gating_check
 
 
 #Paths that need some extra margin at Slow so they can meet in other corners (sf/fs)
-if {$env(design_phase) == "PNR" } {
+if {${SPAR_TOOL} == "PNR" } {
   #real hold timing path
   #set_path_margin -hold 1 -from I_tc_nvm/hvs_bg_ok_count_reg_*_ -to I_tc_nvm/hvs_bg_ok_filt_mr_reg
   #set_path_margin -setup 20 -from READ_SAMP_CORE_OUT[*] -to I_tc_mif/I_tc_mif_rules/MIF_ERR_INSUF_PWR_MR_AIR_reg
