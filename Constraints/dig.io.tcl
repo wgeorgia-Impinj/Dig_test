@@ -104,7 +104,7 @@ set inoutports [get_ports * -filter direction==inout]
 
     # Marc generated this file from RX3 tag level dfII database. 
     # Will be updated with the latest loads from RX4 tag database. 
-    source -echo $env(proj_root)/syn_spar/constraints/dig.loads.tcl
+    source -echo dig.loads.tcl
 
 # 4. Timing external to the output ports
 
@@ -127,12 +127,12 @@ set inoutports [get_ports * -filter direction==inout]
     # Captured within NVMC by SREG_AND_SAMP_CLK. Maybe a 1.5 or 0.5 clock path.
 #    set outputs_to_nvm2 [get_ports "MIF_NVM_WRITE_LENGTH \
 #        MIF_NVM_SIN_DATA MIF_MARGIN_READ_AIR_EN"]
-#    if {$env(design_phase) == "SYNTH"} {
+#    if {${SPAR_TOOL} == "DC"} {
 #        set_output_delay [expr $OSC_CLK_PERIOD/2 - 110.0] $outputs_to_nvm1 \
 #            -clock MIF_NVM_SCLK
 #        set_output_delay [expr $OSC_CLK_PERIOD/2 - 130.0] $outputs_to_nvm2 \
 #            -clock MIF_NVM_SCLK
-#    } elseif {$env(design_phase) == "STA"} {
+#    } elseif {${SPAR_TOOL} == "STA"} {
 #        set_output_delay [expr $OSC_CLK_PERIOD/2 - 150.0] $outputs_to_nvm1 \
 #            -clock MIF_NVM_SCLK
 #        set_output_delay [expr $OSC_CLK_PERIOD/2 - 200.0] $outputs_to_nvm2 \
@@ -273,7 +273,7 @@ set inoutports [get_ports * -filter direction==inout]
 # TIM_MIF_CLK
 # These TC to NVMC 1/2 clock cycle paths.
 # 150ns given to TC_top-level routing, rest used inside NVMC
-#if {$env(design_phase) == "SYNTH"} {
+#if {${SPAR_TOOL} == "DC"} {
 #    set_input_delay -max 140 -clock TIM_MIF_CLK [ get_ports WORD_ADDR ]
 #    set_input_delay -max 140 -clock TIM_MIF_CLK [ get_ports BIT_ADDR ]
 #} else {
